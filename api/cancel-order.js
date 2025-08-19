@@ -1,5 +1,5 @@
 // In /api/cancel-order.js
-
+import { createHash } from 'crypto'; // Import the crypto library for hashing
 // --- IMPORTANT: Update this with your Firebase Hosting URL ---
 const ALLOWED_ORIGIN = 'https://nawarika.olalsoft.com';
 
@@ -25,20 +25,50 @@ export default async function handler(req, res) {
       const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
       // ... (The rest of your logic is exactly the same)
 
+      // --- Start Building User Data ---
+
+    // Hashing function for PII
+    const hash = (value) => {
+      return createHash('sha256').update(value.toLowerCase()).digest('hex');
+    };
+    
+    // Prepare name fields
+    const nameParts = orderData.name.trim().split(' ');
+    const firstName = nameParts.shift() || ''; // Get the first part as first name
+    const lastName = nameParts.join(' ') || '';  // Join the rest as last name
+
+    // Build the user_data object
+    const userData = {
+      client_ip_address: orderData.ipAddress,
+      client_user_agent: orderData.userAgent,
+      fbp: orderData.fbp,
+      fbc: orderData.fbc,
+      ph: hash(orderData.phone.replace(/[^0-9]/g, '')), // Clean and hash phone
+      fn: hash(firstName), // Hash first name
+      ln: hash(lastName), // Hash last name
+    };
+    
+    // --- End Building User Data ---
+
       const META_API_URL = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
       // ... etc.
 
       // --- The entire payload and fetch logic from the previous answer goes here ---
       const currentTime = Math.floor(Date.now() / 1000);
       const payload = {
-        data: [{
-          event_name: 'Purchase',
-          event_time: currentTime,
-          action_source: 'other',
-          user_data: { /* ... user data ... */ },
-          custom_data: { event_status: 'cancelled', /* ... custom data ... */ },
-        }],
-      };
+      data: [{
+        event_name: 'Purchase',
+        event_time: currentTime,
+        action_source: 'other',
+        user_data: userData, // Use the complete user_data object here
+        custom_data: {
+          event_status: 'cancelled',
+          order_id: orderData.orderId,
+          value: orderData.totalPrice,
+          currency: 'BDT',
+        },
+      }],
+    };
       const response = await fetch(`${META_API_URL}?access_token=${ACCESS_TOKEN}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
