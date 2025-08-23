@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MXKPWCPH');</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        #admin-view, #product-manager-view, #visitor-manager-view { display: none; }
+        .editable-input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MXKPWCPH"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <div id="login-view" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+            <h2 class="text-2xl font-bold text-center mb-6">Admin Login</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Login</button>
+                <p id="login-error" class="text-red-500 text-sm mt-2 text-center"></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-view" class="container mx-auto p-4">
+        <header class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-6">
+            <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+            <div>
+                <button id="show-orders-view" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2">Orders</button>
+                <button id="show-visitor-manager" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded mr-2">Manage Visitors</button>
+                <button id="show-product-manager" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-2">Manage Content & Settings</button>
+                <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Logout</button>
+            </div>
+        </header>
+        
+        <div id="orders-view" class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">New Orders</h2>
+            <div id="api-status-message" class="hidden p-3 mb-4 rounded-md text-sm font-semibold"></div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="py-2 px-4 text-left">Date</th>
+                            <th class="py-2 px-4 text-left">Order ID</th>
+                            <th class="py-2 px-4 text-left">Name</th>
+                            <th class="py-2 px-4 text-left">Product</th>
+                            <th class="py-2 px-4 text-left">Total (Tk)</th>
+                            <th class="py-2 px-4 text-left">Address</th>
+                            <th class="py-2 px-4 text-left">Phone</th>
+                            <th class="py-2 px-4 text-left">Note</th>
+                            <th class="py-2 px-4 text-left">Reward</th>
+                            <th class="py-2 px-4 text-left">IP Address</th>
+                            <th class="py-2 px-4 text-left">Device</th>
+                            <th class="py-2 px-4 text-left">Status</th>
+                            <th class="py-2 px-4 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="visitor-manager-view" class="bg-white p-6 rounded-lg shadow-md">
+             <h2 class="text-xl font-semibold mb-4">Visitor Analytics</h2>
+
+            <div class="mb-4 flex justify-end">
+                <input type="text" id="visitor-search-input" placeholder="Search by IP or Location..." class="p-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="py-2 px-4 text-left">Visit Date</th>
+                            <th class="py-2 px-4 text-left">IP Address</th>
+                            <th class="py-2 px-4 text-left">Location</th>
+                            <th class="py-2 px-4 text-left">Visit Count</th>
+                            <th class="py-2 px-4 text-left">Duration</th>
+                            <th class="py-2 px-4 text-left">Device</th>
+                            <th class="py-2 px-4 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitors-table-body">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div id="visitor-pagination-controls" class="mt-4 flex justify-between items-center">
+                <button id="prev-visitor-page" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded">Previous</button>
+                <span id="visitor-page-info" class="font-semibold">Page 1 of 1</span>
+                <button id="next-visitor-page" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded">Next</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="product-manager-view" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-full overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-2xl font-bold">Manage Content & Settings</h2>
+                <button id="close-product-manager" class="text-gray-500 hover:text-gray-800 text-2xl">×</button>
+            </div>
+            <form id="product-form" class="space-y-6">
+                <div class="p-4 border rounded-md">
+                    <h3 class="text-xl font-semibold mb-3">Product Media</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="product-title" class="block font-medium">Product Title (Bangla)</label>
+                            <input type="text" id="product-title" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="product-images-urls" class="block font-medium">Image URLs (comma-separated)</label>
+                            <input type="text" id="product-images-urls" class="w-full p-2 border rounded" placeholder="https://link1, https://link2">
+                        </div>
+                        <div>
+                            <label for="product-video-urls" class="block font-medium">Video URLs (comma-separated)</label>
+                            <input type="text" id="product-video-urls" class="w-full p-2 border rounded" placeholder="https://link1, https://link2">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border rounded-md">
+                    <h3 class="text-xl font-semibold mb-3">Site Content & Text</h3>
+                    <div class="space-y-4">
+                         <div>
+                            <label for="main-description-text" class="block font-medium">Description under "কেন আমাদের দোয়া স্টিকার কিনবেন?"</label>
+                            <textarea id="main-description-text" rows="4" class="w-full p-2 border rounded"></textarea>
+                        </div>
+                        <div>
+                            <label for="package-24-full-list" class="block font-medium">Package 24 Full List (First line is title, then one item per line)</label>
+                            <textarea id="package-24-full-list" rows="10" class="w-full p-2 border rounded" placeholder="প্যাকেজ ২৪ (২৪ পিস)
+সকালে ঘুম থেকে উঠে দোয়া
+ঘুমানোর আগে দোয়া"></textarea>
+                        </div>
+                         <div>
+                            <label for="package-48-full-list" class="block font-medium">Package 48 Full List (First line is title, then one item per line)</label>
+                            <textarea id="package-48-full-list" rows="10" class="w-full p-2 border rounded" placeholder="প্যাকেজ ৪৮ (৪৮ পিস)
+সন্তান লাভের জন্য দোয়া
+শক্তি ও সহনশীলতা লাভের দোয়া"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border rounded-md">
+                    <h3 class="text-xl font-semibold mb-3">Pricing (in Taka)</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="price-medium-24" class="block font-medium">Medium - 24 pcs</label>
+                            <input type="number" id="price-medium-24" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="price-medium-48" class="block font-medium">Medium - 48 pcs</label>
+                            <input type="number" id="price-medium-48" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="price-big-24" class="block font-medium">Large - 24 pcs</label>
+                            <input type="number" id="price-big-24" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label for="price-big-48" class="block font-medium">Large - 48 pcs</label>
+                            <input type="number" id="price-big-48" class="w-full p-2 border rounded">
+                        </div>
+                         <div>
+                            <label for="delivery-charge" class="block font-medium">Delivery Charge</label>
+                            <input type="number" id="delivery-charge" class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+                </div>
+                 
+                <div class="p-4 border rounded-md">
+                    <h3 class="text-xl font-semibold mb-3">General Settings</h3>
+                     <div class="space-y-4">
+                        <div>
+                           <label for="whatsapp-number" class="block font-medium">WhatsApp Number (with country code, e.g., 88017...)</label>
+                           <input type="text" id="whatsapp-number" class="w-full p-2 border rounded" placeholder="8801...">
+                        </div>
+                        <div>
+                            <label for="messenger-page-id" class="block font-medium">Messenger Page ID / Username</label>
+                            <input type="text" id="messenger-page-id" class="w-full p-2 border rounded" placeholder="your.page.username">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border rounded-md">
+                    <h3 class="text-xl font-semibold mb-3">Customer Feedback Section</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="feedback-section-title" class="block font-medium">Section Title</label>
+                            <input type="text" id="feedback-section-title" class="w-full p-2 border rounded" placeholder="e.g., What Our Customers Say">
+                        </div>
+                        <div>
+                            <label for="feedback-images-urls" class="block font-medium">Feedback Image URLs (comma-separated screenshots)</label>
+                            <input type="text" id="feedback-images-urls" class="w-full p-2 border rounded" placeholder="https://link1, https://link2">
+                        </div>
+                        <div>
+                            <label for="feedback-section-description" class="block font-medium">Section Description</label>
+                            <textarea id="feedback-section-description" rows="4" class="w-full p-2 border rounded" placeholder="Describe the feedback..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border rounded-md">
+                    <h3 class="text-xl font-semibold mb-3">Spinning Wheel Rewards (9 Slots)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        <input type="text" id="reward-1" class="w-full p-2 border rounded" placeholder="Reward 1">
+                        <input type="text" id="reward-2" class="w-full p-2 border rounded" placeholder="Reward 2">
+                        <input type="text" id="reward-3" class="w-full p-2 border rounded" placeholder="Reward 3">
+                        <input type="text" id="reward-4" class="w-full p-2 border rounded" placeholder="Reward 4">
+                        <input type="text" id="reward-5" class="w-full p-2 border rounded" placeholder="Reward 5">
+                        <input type="text" id="reward-6" class="w-full p-2 border rounded" placeholder="Reward 6">
+                        <input type="text" id="reward-7" class="w-full p-2 border rounded" placeholder="Reward 7">
+                        <input type="text" id="reward-8" class="w-full p-2 border rounded" placeholder="Reward 8">
+                        <input type="text" id="reward-9" class="w-full p-2 border rounded" placeholder="Reward 9">
+                    </div>
+                </div>
+
+
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 font-bold text-lg">Save All Changes</button>
+                <p id="product-success" class="text-green-600 text-center mt-2"></p>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        const firebaseConfig = {
+          apiKey: "AIzaSyDw1o2kY5kl5oGNhgDP5rRxfvtK20vz0f0",
+          authDomain: "nawarika-73f50.firebaseapp.com",
+          projectId: "nawarika-73f50",
+          storageBucket: "nawarika-73f50.firebasestorage.app",
+          messagingSenderId: "357981390108",
+          appId: "1:357981390108:web:ad931ea157c1021314a6d9",
+          measurementId: "G-9JRWT461NQ"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, query, orderBy, addDoc, getDocs, getDoc, setDoc, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- General Elements ---
+        const loginView = document.getElementById('login-view');
+        const adminView = document.getElementById('admin-view');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        // --- View Switching Elements ---
+        const ordersView = document.getElementById('orders-view');
+        const visitorManagerView = document.getElementById('visitor-manager-view');
+        const productManagerView = document.getElementById('product-manager-view');
+        const showProductManagerBtn = document.getElementById('show-product-manager');
+        const showVisitorManagerBtn = document.getElementById('show-visitor-manager');
+        const showOrdersBtn = document.getElementById('show-orders-view');
+        const closeProductManagerBtn = document.getElementById('close-product-manager');
+
+        // --- Orders Elements ---
+        const ordersTableBody = document.getElementById('orders-table-body');
+        
+        // --- Product Manager Elements ---
+        const productForm = document.getElementById('product-form');
+        const productSuccessMsg = document.getElementById('product-success');
+        
+        // --- Visitor Manager Elements & State ---
+        const visitorsTableBody = document.getElementById('visitors-table-body');
+        const searchInput = document.getElementById('visitor-search-input');
+        const prevPageBtn = document.getElementById('prev-visitor-page');
+        const nextPageBtn = document.getElementById('next-visitor-page');
+        const pageInfo = document.getElementById('visitor-page-info');
+        let allVisitors = [];
+        let filteredVisitors = [];
+        let visitorCurrentPage = 1;
+        const visitorsPerPage = 10;
+
+        // --- Auth State ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                loginView.style.display = 'none';
+                adminView.style.display = 'block';
+                ordersView.style.display = 'block'; 
+                visitorManagerView.style.display = 'none';
+                loadOrders();
+                loadVisitors();
+                loadAllAdminData();
+            } else {
+                loginView.style.display = 'flex';
+                adminView.style.display = 'none';
+            }
+        });
+
+        // --- Event Listeners ---
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = loginForm.email.value;
+            const password = loginForm.password.value;
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(error => { loginError.textContent = error.message; });
+        });
+
+        logoutBtn.addEventListener('click', () => { signOut(auth); });
+
+        // --- Orders Logic ---
+        let unsubscribeOrders;
+  function loadOrders() {
+    const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
+    if (unsubscribeOrders) unsubscribeOrders();
+    unsubscribeOrders = onSnapshot(q, (snapshot) => {
+        ordersTableBody.innerHTML = '';
+        snapshot.forEach(doc => {
+            const order = doc.data();
+            const orderId = doc.id;
+            const row = document.createElement('tr');
+            row.className = 'border-b';
+            row.dataset.orderId = orderId;
+            const formattedDate = order.timestamp.toDate().toLocaleString('bn-BD');
+            row.innerHTML = `
+                <td class="py-2 px-4 whitespace-nowrap">${formattedDate}</td>
+                <td class="py-2 px-4 font-mono text-sm text-blue-700">${order.orderId || 'N/A'}</td>
+                <td class="py-2 px-4" data-field="name">${order.name}</td>
+                <td class="py-2 px-4 font-semibold" data-field="product">${order.product || 'N/A'}</td>
+                <td class="py-2 px-4 font-bold text-red-600" data-field="totalPrice">${order.totalPrice || 'N/A'}</td>
+                <td class="py-2 px-4" data-field="address">${order.address}</td>
+                <td class="py-2 px-4" data-field="phone">${order.phone}</td>
+                <td class="py-2 px-4" data-field="note">${order.note || ''}</td>
+                <td class="py-2 px-4 text-blue-600 font-semibold" data-field="reward">${order.reward || 'N/A'}</td>
+                <td class="py-2 px-4 text-gray-600 text-sm">${order.ipAddress || 'N/A'}</td>
+                <td class="py-2 px-4 text-gray-500 text-xs" title="${order.userAgent || ''}">${(order.userAgent || 'N/A').substring(0, 30)}...</td>
+                <td class="py-2 px-4">
+                    <select data-id="${orderId}" class="status-dropdown p-1 border rounded ${getStatusColor(order.status)}">
+                        <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Confirmed" ${order.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                        <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
+                        <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="Canceled" ${order.status === 'Canceled' ? 'selected' : ''}>Canceled</option>
+                    </select>
+                </td>
+                <td class="py-2 px-4 whitespace-nowrap">
+                    <button data-id="${orderId}" class="edit-order-btn bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-2 rounded">Edit</button>
+                    <button data-id="${orderId}" class="delete-order-btn bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-2 rounded ml-1">Delete</button>
+                    <button data-tracking-id="${order.orderId}" class="copy-tracking-link-btn bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-2 rounded ml-1">Copy Link</button>
+                </td>
+            `;
+            ordersTableBody.appendChild(row);
+        });
+    });
+}
+        
+        // --- Visitors Logic ---
+        async function loadVisitors() {
+            const q = query(collection(db, "visitors"), orderBy("startTime", "desc"));
+            const querySnapshot = await getDocs(q);
+            allVisitors = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            filteredVisitors = [...allVisitors];
+            visitorCurrentPage = 1;
+            displayVisitors();
+        }
+
+        function displayVisitors() {
+            visitorsTableBody.innerHTML = '';
+            const startIndex = (visitorCurrentPage - 1) * visitorsPerPage;
+            const endIndex = startIndex + visitorsPerPage;
+            const paginatedVisitors = filteredVisitors.slice(startIndex, endIndex);
+
+            if (paginatedVisitors.length === 0) {
+                 visitorsTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No visitors found.</td></tr>';
+            } else {
+                paginatedVisitors.forEach(visitor => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b';
+                    const formattedDate = visitor.startTime.toDate().toLocaleString('en-GB');
+                    const duration = visitor.durationMillis || 0;
+                    const seconds = Math.floor((duration / 1000) % 60);
+                    const minutes = Math.floor((duration / (1000 * 60)) % 60);
+                    const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+                    const formattedDuration = `${hours}h ${minutes}m ${seconds}s`;
+                    row.innerHTML = `
+                        <td class="py-2 px-4">${formattedDate}</td>
+                        <td class="py-2 px-4">${visitor.ipAddress}</td>
+                        <td class="py-2 px-4">${visitor.location}</td>
+                        <td class="py-2 px-4 font-semibold text-center">${visitor.visitCount || 1}</td>
+                        <td class="py-2 px-4 font-semibold">${formattedDuration}</td>
+                        <td class="py-2 px-4 text-xs text-gray-500" title="${visitor.userAgent || ''}">${(visitor.userAgent || 'N/A').substring(0, 40)}...</td>
+                        <td class="py-2 px-4">
+                            <button data-id="${visitor.id}" class="delete-visitor-btn bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-2 rounded">Delete</button>
+                        </td>
+                    `;
+                    visitorsTableBody.appendChild(row);
+                });
+            }
+            updatePaginationControls();
+        }
+
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(filteredVisitors.length / visitorsPerPage);
+            pageInfo.textContent = `Page ${visitorCurrentPage} of ${totalPages || 1}`;
+            prevPageBtn.disabled = visitorCurrentPage === 1;
+            nextPageBtn.disabled = visitorCurrentPage === totalPages || totalPages === 0;
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            filteredVisitors = allVisitors.filter(visitor => {
+                const ip = visitor.ipAddress ? visitor.ipAddress.toLowerCase() : '';
+                const location = visitor.location ? visitor.location.toLowerCase() : '';
+                return ip.includes(searchTerm) || location.includes(searchTerm);
+            });
+            visitorCurrentPage = 1;
+            displayVisitors();
+        });
+
+        prevPageBtn.addEventListener('click', () => {
+            if (visitorCurrentPage > 1) {
+                visitorCurrentPage--;
+                displayVisitors();
+            }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredVisitors.length / visitorsPerPage);
+            if (visitorCurrentPage < totalPages) {
+                visitorCurrentPage++;
+                displayVisitors();
+            }
+        });
+
+        function getStatusColor(status) {
+                        switch(status) {
+                case 'Pending':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Confirmed':
+                    return 'bg-indigo-100 text-indigo-800';
+                case 'Preparing':
+                    return 'bg-purple-100 text-purple-800';
+                case 'Shipped':
+                    return 'bg-blue-100 text-blue-800';
+                case 'Delivered':
+                    return 'bg-green-100 text-green-800';
+                case 'Canceled':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100';
+            }
+        }
+
+ordersTableBody.addEventListener('click', async (e) => {
+    const target = e.target;
+    const orderId = target.dataset.id;
+
+    if (target.classList.contains('delete-order-btn')) {
+        if (confirm('Are you sure you want to delete this order?')) {
+            try {
+                await deleteDoc(doc(db, "orders", orderId));
+            } catch (error) {
+                console.error("Error deleting order:", error);
+                alert("Failed to delete order.");
+            }
+        }
+    } else if (target.classList.contains('edit-order-btn')) {
+        const row = target.closest('tr');
+        toggleOrderEdit(row, true);
+    } else if (target.classList.contains('save-order-btn')) {
+         const row = target.closest('tr');
+        const updatedData = {
+            name: row.querySelector('[data-field="name"] input').value,
+            product: row.querySelector('[data-field="product"] input').value,
+            totalPrice: parseFloat(row.querySelector('[data-field="totalPrice"] input').value) || 0,
+            address: row.querySelector('[data-field="address"] input').value,
+            phone: row.querySelector('[data-field="phone"] input').value,
+            note: row.querySelector('[data-field="note"] input').value,
+            reward: row.querySelector('[data-field="reward"] input').value,
+        };
+         try {
+            await updateDoc(doc(db, "orders", orderId), updatedData);
+            toggleOrderEdit(row, false);
+        } catch (error) {
+            console.error("Error updating order:", error);
+            alert("Failed to save changes.");
+        }
+    } else if (target.classList.contains('cancel-edit-btn')) {
+        loadOrders();
+    } else if (target.classList.contains('copy-tracking-link-btn')) {
+        const trackingId = target.dataset.trackingId;
+        if (trackingId) {
+            // Replace with your actual domain
+            const trackingUrl = `https://nawarika.olalsoft.com/?orderId=${trackingId}`;
+            navigator.clipboard.writeText(trackingUrl).then(() => {
+                const originalText = target.textContent;
+                target.textContent = 'Copied!';
+                target.disabled = true;
+                setTimeout(() => {
+                    target.textContent = originalText;
+                    target.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy link.');
+            });
+        }
+    }
+});
+
+        ordersTableBody.addEventListener('change', async (e) => {
+            if (e.target.classList.contains('status-dropdown')) {
+                const orderId = e.target.dataset.id;
+                const newStatus = e.target.value;
+                const apiMessageDiv = document.getElementById('api-status-message');
+                try {
+                    // **Step 1: Define `orderRef` here, at the beginning.**
+                    // This creates a reference to the specific order in Firestore.
+                    const orderRef = doc(db, "orders", orderId);
+                    await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+                    e.target.className = `status-dropdown p-1 border rounded ${getStatusColor(newStatus)}`;
+
+
+                    // If the order was canceled, call the Vercel API
+            if (newStatus === 'Canceled') {
+                console.log('Order canceled. Sending data to Vercel...');
+                
+                const orderSnap = await getDoc(orderRef);
+                if (orderSnap.exists()) {
+                    const orderData = orderSnap.data();
+                    const vercelApiUrl = 'https://nawarikaordercancelapi.vercel.app/api/cancel-order';
+
+                    // --- UPDATED LOGIC TO HANDLE RESPONSE ---
+                    const response = await fetch(vercelApiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderData),
+                    });
+
+                    const result = await response.json(); // Get the message from your API
+
+                    // Style and show the message based on success or failure
+                    if (!response.ok) {
+                        // Failure
+                        apiMessageDiv.textContent = `Error: ${result.message || 'Failed to send event.'}`;
+                        apiMessageDiv.className = 'p-3 mb-4 rounded-md text-sm font-semibold bg-red-100 text-red-800';
+                    } else {
+                        // Success
+                        apiMessageDiv.textContent = `Success: ${result.message || 'Cancellation event sent.'}`;
+                        apiMessageDiv.className = 'p-3 mb-4 rounded-md text-sm font-semibold bg-green-100 text-green-800';
+                    }
+                    
+                    apiMessageDiv.classList.remove('hidden');
+
+                    // Hide the message after 5 seconds
+                    setTimeout(() => {
+                        apiMessageDiv.classList.add('hidden');
+                    }, 5000);
+                    // --- END UPDATED LOGIC ---
+                }
+            }
+
+
+
+                } catch (error) {
+                    console.error("Error updating status:", error);
+                }
+            }
+        });
+
+        function toggleOrderEdit(row, isEditing) {
+            const editableFields = row.querySelectorAll('[data-field]');
+            
+            if (isEditing) {
+                editableFields.forEach(td => {
+                    const currentValue = td.textContent;
+                    td.dataset.originalValue = currentValue;
+                    const fieldName = td.dataset.field;
+                    // Make price field a number input
+                    const inputType = (fieldName === 'totalPrice') ? 'number' : 'text';
+                    td.innerHTML = `<input type="${inputType}" class="editable-input" value="${currentValue}">`;
+                });
+                const actionsCell = row.querySelector('td:last-child');
+                actionsCell.innerHTML = `
+                    <button data-id="${row.dataset.orderId}" class="save-order-btn bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-2 rounded">Save</button>
+                    <button class="cancel-edit-btn bg-gray-500 hover:bg-gray-600 text-white text-sm py-1 px-2 rounded ml-1">Cancel</button>
+                `;
+            } else {
+                loadOrders(); 
+            }
+        }
+        
+        visitorsTableBody.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-visitor-btn')) {
+                const visitorId = e.target.dataset.id;
+                if (confirm('Are you sure you want to delete this visitor record?')) {
+                    try {
+                        await deleteDoc(doc(db, "visitors", visitorId));
+                        loadVisitors();
+                    } catch (error) {
+                        console.error("Error deleting visitor:", error);
+                        alert("Failed to delete visitor record.");
+                    }
+                }
+            }
+        });
+        
+        // --- View Toggling ---
+        showProductManagerBtn.addEventListener('click', () => productManagerView.style.display = 'flex');
+        closeProductManagerBtn.addEventListener('click', () => productManagerView.style.display = 'none');
+        showVisitorManagerBtn.addEventListener('click', () => {
+            ordersView.style.display = 'none';
+            visitorManagerView.style.display = 'block';
+        });
+        showOrdersBtn.addEventListener('click', () => {
+            visitorManagerView.style.display = 'none';
+            ordersView.style.display = 'block';
+        });
+        
+        // --- Product & Settings Data Loading ---
+        async function loadAllAdminData() {
+            // Product data
+            const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(1));
+            const productSnapshot = await getDocs(q);
+            if (!productSnapshot.empty) {
+                const productData = productSnapshot.docs[0].data();
+                document.getElementById('product-title').value = productData.title || '';
+                document.getElementById('product-images-urls').value = (productData.imageUrls || []).join(', ');
+                document.getElementById('product-video-urls').value = (productData.videoUrls || []).join(', ');
+            }
+
+            // Contact info
+            const contactSnap = await getDoc(doc(db, "settings", "contactInfo"));
+            if (contactSnap.exists()) {
+                const data = contactSnap.data();
+                document.getElementById('whatsapp-number').value = data.whatsappNumber || '';
+                document.getElementById('messenger-page-id').value = data.messengerPageId || '';
+            }
+
+            // Site content
+            const contentSnap = await getDoc(doc(db, "settings", "siteContent"));
+            if (contentSnap.exists()) {
+                const data = contentSnap.data();
+                document.getElementById('main-description-text').value = data.mainDescription || '';
+                document.getElementById('package-24-full-list').value = data.package24List || '';
+                document.getElementById('package-48-full-list').value = data.package48List || '';
+                document.getElementById('price-medium-24').value = data.priceMedium24 || '';
+                document.getElementById('price-medium-48').value = data.priceMedium48 || '';
+                document.getElementById('price-big-24').value = data.priceBig24 || '';
+                document.getElementById('price-big-48').value = data.priceBig48 || '';
+                document.getElementById('delivery-charge').value = data.deliveryCharge || '';
+            }
+
+            // Spinning wheel rewards
+            const wheelSnap = await getDoc(doc(db, "settings", "spinningWheel"));
+            if (wheelSnap.exists()) {
+                const rewards = wheelSnap.data();
+                for (let i = 1; i <= 9; i++) {
+                    const input = document.getElementById(`reward-${i}`);
+                    if (input) {
+                        input.value = rewards[`reward${i}`] || '';
+                    }
+                }
+            }
+
+            // Customer Feedback
+            const feedbackSnap = await getDoc(doc(db, "settings", "customerFeedback"));
+            if (feedbackSnap.exists()) {
+                const data = feedbackSnap.data();
+                document.getElementById('feedback-section-title').value = data.title || '';
+                document.getElementById('feedback-images-urls').value = (data.imageUrls || []).join(', ');
+                document.getElementById('feedback-section-description').value = data.description || '';
+            }
+        }
+        
+        // --- Product & Settings Form Submission ---
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = productForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            productSuccessMsg.textContent = 'Saving...';
+            
+            try {
+                // Save Product
+                const productData = {
+                    title: document.getElementById('product-title').value,
+                    imageUrls: document.getElementById('product-images-urls').value.split(',').map(url => url.trim()).filter(url => url),
+                    videoUrls: document.getElementById('product-video-urls').value.split(',').map(url => url.trim()).filter(url => url),
+                    createdAt: new Date()
+                };
+                await addDoc(collection(db, "products"), productData);
+
+                const contactInfo = {
+                    whatsappNumber: document.getElementById('whatsapp-number').value.trim(),
+                    messengerPageId: document.getElementById('messenger-page-id').value.trim()
+                };
+                await setDoc(doc(db, "settings", "contactInfo"), contactInfo, { merge: true });
+
+                const siteContentData = {
+                    mainDescription: document.getElementById('main-description-text').value,
+                    package24List: document.getElementById('package-24-full-list').value,
+                    package48List: document.getElementById('package-48-full-list').value,
+                    priceMedium24: Number(document.getElementById('price-medium-24').value),
+                    priceMedium48: Number(document.getElementById('price-medium-48').value),
+                    priceBig24: Number(document.getElementById('price-big-24').value),
+                    priceBig48: Number(document.getElementById('price-big-48').value),
+                    deliveryCharge: Number(document.getElementById('delivery-charge').value)
+                };
+                await setDoc(doc(db, "settings", "siteContent"), siteContentData, { merge: true });
+
+                const wheelData = {};
+                for (let i = 1; i <= 9; i++) {
+                    wheelData[`reward${i}`] = document.getElementById(`reward-${i}`).value;
+                }
+                await setDoc(doc(db, "settings", "spinningWheel"), wheelData, { merge: true });
+
+                const customerFeedbackData = {
+                    title: document.getElementById('feedback-section-title').value,
+                    imageUrls: document.getElementById('feedback-images-urls').value.split(',').map(url => url.trim()).filter(url => url),
+                    description: document.getElementById('feedback-section-description').value
+                };
+                await setDoc(doc(db, "settings", "customerFeedback"), customerFeedbackData, { merge: true });
+
+                productSuccessMsg.textContent = 'All data saved successfully!';
+                setTimeout(() => {
+                    productSuccessMsg.textContent = '';
+                    productManagerView.style.display = 'none';
+                }, 2000);
+            } catch (error) {
+                console.error("Error saving data:", error);
+                productSuccessMsg.textContent = 'An error occurred. Please check the console.';
+            } finally {
+                 submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
