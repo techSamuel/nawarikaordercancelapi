@@ -11,7 +11,11 @@ const ALLOWED_ORIGINS = [
 export default async function handler(req, res) {
   // --- CORS Configuration ---
   // This tells the browser to allow requests from your Firebase domain.
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  // --- Updated CORS Configuration ---
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
