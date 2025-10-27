@@ -3,7 +3,7 @@ import { createTransport } from 'nodemailer';
 
 // --- IMPORTANT: Update this with your Firebase Hosting URL ---
 // (Copied from your cancel-order.js)
-const ALLOWED_ORIGIN = 'https://nawarika.olalsoft.com';
+const ALLOWED_ORIGIN = '*';
 
 export default async function handler(req, res) {
   // --- CORS Configuration ---
