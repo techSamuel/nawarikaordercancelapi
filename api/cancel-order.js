@@ -1,7 +1,11 @@
 // In /api/cancel-order.js
 import { createHash } from 'crypto'; // Import the crypto library for hashing
 // --- IMPORTANT: Update this with your Firebase Hosting URL ---
-const ALLOWED_ORIGIN = 'https://nawarika.olalsoft.com';
+const ALLOWED_ORIGINS = [
+  'https://nawarika.olalsoft.com', // Your production domain
+  'http://127.0.0.1:5500',          // Your local test server
+  'https://nawarika.shop'   // Add any other domains
+];
 
 export default async function handler(req, res) {
   // --- CORS Configuration ---
