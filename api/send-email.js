@@ -5,7 +5,8 @@ import { createTransport } from 'nodemailer';
 const ALLOWED_ORIGINS = [
   'https://nawarika.olalsoft.com', // Your production domain
   'http://127.0.0.1:5500',          // Your local test server
-  'https://nawarika.shop'   // Add any other domains
+  'https://nawarika.shop',
+  'https://duyasticker.nawarika.shop'// Add any other domains
 ];
 
 export default async function handler(req, res) {
