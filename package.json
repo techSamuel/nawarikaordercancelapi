@@ -1,1 +1,8 @@
-
+{
+  "name": "nawarika-landing-page",
+  "version": "1.0.0",
+  "description": "Serverless functions for Nawarika landing page",
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}
