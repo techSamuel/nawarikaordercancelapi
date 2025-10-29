@@ -63,6 +63,7 @@ export default async function handler(req, res) {
         data: [{
           event_name: 'Purchase',
           event_time: currentTime,
+          event_id: orderData.orderId,
           action_source: 'website', // Changed from 'other' to 'website'
           user_data: userData,
           custom_data: {
